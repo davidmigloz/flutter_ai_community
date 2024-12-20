@@ -1,0 +1,43 @@
+name: flutter_ai_providers CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/flutter_ai_providers/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/flutter_ai_providers/**'
+  workflow_dispatch:
+
+jobs:
+  lint-and-test:
+    name: Test Flutter ${{ matrix.flutter_version }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/flutter_ai_providers
+    strategy:
+      fail-fast: false
+      matrix:
+        flutter_version: [stable, beta]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Flutter
+        uses: subosito/flutter-action@f2c4f6686ca8e8d6e6d0f28410eeef506ed66aff
+        with:
+          channel: ${{ matrix.flutter_version }}
+      - run: dart --version
+      - run: flutter --version
+      - run: flutter pub get
+      - name: Lint analysis
+        run: dart analyze --fatal-infos
+      - name: Dart format
+        run: dart format --output none --set-exit-if-changed .
+      - name: dart fix
+        run: dart fix --dry-run
+      - name: Run tests
+        run: flutter test
+      - name: Check API docs can generate
+        run: dart doc --dry-run

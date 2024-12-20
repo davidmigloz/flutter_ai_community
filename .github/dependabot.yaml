@@ -1,0 +1,14 @@
+version: 2
+enable-beta-ecosystems: true
+updates:
+  # GitHub actions ecosystem.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+  # Pub ecosystem.
+  - package-ecosystem: "pub"
+    versioning-strategy: "increase-if-necessary"
+    directory: "/"
+    schedule:
+      interval: "daily"

@@ -1,0 +1,22 @@
+name: flutter_ai_providers
+description: Community-contributed providers for the Flutter AI Toolkit.
+version: 0.0.1-dev.1
+repository: https://github.com/davidmigloz/flutter_ai_community/tree/main/packages/flutter_ai_providers
+issue_tracker: https://github.com/davidmigloz/flutter_ai_community/issues?q=label:p:langgraph
+
+topics:
+  - ai
+  - chat
+  - llms
+
+environment:
+  sdk: ^3.5.0
+  flutter: '>=3.27.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_ai_toolkit: ^0.6.7
+
+dev_dependencies:
+  flutter_lints: ^5.0.0
