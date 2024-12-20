@@ -39,5 +39,8 @@ jobs:
         run: dart fix --dry-run
       - name: Run tests
         run: flutter test
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       - name: Check API docs can generate
         run: dart doc --dry-run
