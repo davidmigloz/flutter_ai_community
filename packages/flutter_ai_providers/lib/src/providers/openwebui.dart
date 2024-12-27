@@ -1,7 +1,3 @@
-// Copyright 2024 The Flutter Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -34,18 +30,20 @@ extension _OwuiMessage on ChatMessage {
 class _OwuiChatRequest {
   final String model;
   final List<ChatMessage> messages;
+  final List<Map<String, dynamic>>? files;
 
   /// Creates an instance of [_OwuiChatRequest].
   ///
   /// [model] is the model to be used for the chat.
   /// [messages] is the list of messages in the chat history.
-  _OwuiChatRequest({required this.model, required this.messages});
+  _OwuiChatRequest({required this.model, required this.messages, this.files});
 
   /// Converts the [_OwuiChatRequest] instance to a JSON object.
   Map<String, dynamic> toJson() => {
     'model': model,
     'stream': true,
     'messages': messages.map((message) => message.toOwuiJson()).toList(),
+    'files': files,
   };
 
   String toJsonString() => jsonEncode(toJson());
@@ -100,7 +98,7 @@ class OpenwebuiProvider extends LlmProvider with ChangeNotifier {
   /// The [history] parameter is an optional iterable of [ChatMessage] objects
   /// representing the chat history
   /// The [model] parameter is the ai model to be used for the chat.
-  /// The [host] parameter is the host of the open-webui server.
+  /// The [baseUrl] parameter is the host of the open-webui server.
   /// For example port 3000 on localhost use 'http://localhost:3000'
   /// The [apiKey] parameter is the API key for the open-webui server.
   /// See the [docs](https://docs.openwebui.com/) for more information.
@@ -118,28 +116,31 @@ class OpenwebuiProvider extends LlmProvider with ChangeNotifier {
   OpenwebuiProvider({
     Iterable<ChatMessage>? history,
     required String model,
-    required String host,
+    required String baseUrl,
     String? apiKey,
   }): _history = history?.toList() ?? [],
       _model = model,
-      _host = host,
+      _host = baseUrl,
       _apiKey = apiKey;
 
   final List<ChatMessage> _history;
   final String _model;
   final String _host;
   final String? _apiKey;
+  final List<Map<String, String>> _attachments = [];
+  final _emptyMessage = ChatMessage(origin: MessageOrigin.llm, text: null, attachments: []);
 
   @override
   Stream<String> generateStream(
     String prompt, {
     Iterable<Attachment> attachments = const [],
   }) async* {
-    _history.clear();
     final userMessage = ChatMessage(text: prompt, attachments: attachments, origin: MessageOrigin.user);
     final llmMessage = ChatMessage(text: "", attachments: [], origin: MessageOrigin.llm);
-    _history.addAll([userMessage, llmMessage]);
-    yield* _generateStream([userMessage], llmMessage);
+    
+    yield* _generateStream([userMessage, llmMessage]);
+    
+    notifyListeners();
   }
 
   @override
@@ -148,27 +149,37 @@ class OpenwebuiProvider extends LlmProvider with ChangeNotifier {
     Iterable<Attachment> attachments = const [],
   }) async* {
     final userMessage = ChatMessage(text: prompt, attachments: attachments, origin: MessageOrigin.user);
-    final llmResponse = ChatMessage(text: "", attachments: [], origin: MessageOrigin.llm);
-    _history.add(userMessage);
-    final messages = [..._history];
-    _history.add(llmResponse);
-    yield* _generateStream(messages, llmResponse);
+    final llmMessage = ChatMessage(text: null, attachments: [], origin: MessageOrigin.llm);
+    _history.addAll([userMessage, llmMessage]);
+
+    yield* _generateStream(_history);
+    notifyListeners();
   }
 
-  Stream<String> _generateStream(List<ChatMessage> messages, ChatMessage llmResponse) async* {
-    final httpRequest = http.Request('POST', Uri.parse("$_host/api/chat/completions"))
+  Stream<String> _generateStream(List<ChatMessage> messages) async* {
+    final files = messages.lastWhere((m) => m.origin == MessageOrigin.user, orElse: () => _emptyMessage).attachments;
+    final llmMessage = messages.last;
+    if(files.isNotEmpty) {
+      for (var file in files) {
+        _attachments.add(await _uploadAttachment(file));
+      }
+    }
+
+    final httpRequest = http.Request('POST', Uri.parse("$_host/chat/completions"))
       ..headers.addAll({
         if(_apiKey != null) 'Authorization': 'Bearer $_apiKey',
         'Content-Type': 'application/json',
       })
-      ..body = _OwuiChatRequest(model: _model, messages: messages).toJsonString();
+      ..body = _OwuiChatRequest(
+        model: _model,
+        messages: messages.where((m) => m.text != null).toList(),
+        files: _attachments,
+      ).toJsonString();
 
     final httpResponse = await http.Client().send(httpRequest);
 
     if (httpResponse.statusCode == 200) {
-      final textStream = httpResponse.stream.transform(utf8.decoder);
-
-      await for (var text in textStream) {
+      await for (var text in httpResponse.stream.transform(utf8.decoder)) {
         final messages = text.split('\n');
         for (var message in messages) {
           if (message.startsWith('data: [DONE]')) {
@@ -179,22 +190,50 @@ class OpenwebuiProvider extends LlmProvider with ChangeNotifier {
           try {
             final chatResponse = _OwuiChatResponse.fromJsonString(cleanedMessage);
             for (var choice in chatResponse.choices) {
-              final content = choice.message.text ?? '';
-              llmResponse.append(content);
-              yield content;
+              llmMessage.append(choice.message.text ?? '');
+              yield choice.message.text ?? '';
             }
           } catch (e) {
             // just skip?
           }
         }
+        llmMessage.append('');
+        yield '';
       }
     } else {
       throw Exception('HTTP request failed. Status: ${httpResponse.statusCode}, Reason: ${httpResponse.reasonPhrase}');
     }
   }
 
+  Future<Map<String, String>> _uploadAttachment(Attachment filePath) async {
+    if(filePath is! FileAttachment) {
+      throw Exception('Unsupported attachment type');
+    }
+
+    final uri = Uri.parse('$_host/v1/files/'); // Replace with your OpenWebUI endpoint
+    final request = http.MultipartRequest('POST', uri)
+      ..headers.addAll({
+        if(_apiKey != null) 'Authorization': 'Bearer $_apiKey',
+        'Content-Type': 'multipart/form-data',
+        'Accept': 'application/json',
+      })
+      ..files.add(http.MultipartFile.fromBytes('file', filePath.bytes, filename: filePath.name));
+
+    final response = await request.send();
+    if (response.statusCode == 200) {
+      final responseBody = await response.stream.bytesToString();
+      final jsonResponse = json.decode(responseBody);
+      return {
+        'type': 'file',
+        'id': jsonResponse['id'].toString()
+      }; // Adjust based on the actual response structure
+    } else {
+      throw Exception('Failed to upload file: ${response.reasonPhrase}');
+    }
+  }
+
   @override
-  get history => _history;
+  get history => List.from(_history);
 
   @override
   set history(history) {
