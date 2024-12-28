@@ -107,8 +107,8 @@ class ToolProvider extends LlmProvider with ChangeNotifier {
   ToolProvider({
     required LlmProvider provider,
     List<LlmTool> tools = const [],
-    String searchPattern = r"<tool_call>([\s\S]*?)<\/tool_call>",
-    String stopPattern = "</tool_call>"
+    String searchPattern = r"<flutter_tool>([\s\S]*?)<\/flutter_tool>",
+    String stopPattern = "</flutter_tool>"
   }): _provider = provider, _searchPattern = searchPattern, _stopPattern = stopPattern, _tools = tools {
     _provider.addListener(notifyListeners);
   }
