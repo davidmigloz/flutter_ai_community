@@ -115,6 +115,19 @@ final provider = OllamaProvider(
 );
 ```
 
+### Openwebui Provider
+
+- [Website](https://openwebui.com/)
+- [Supported models](https://ollama.com/search)
+
+```dart
+final provider = OpenwebuiProvider(
+  baseUrl: 'http://localhost:3000',
+  apiKey: 'your-api-key',
+  model: 'llama3.1:latest',
+);
+```
+
 ## Contributing
 
 Contributions are welcome! If you'd like to add support for additional providers or improve existing ones, please feel free to submit a pull request.
