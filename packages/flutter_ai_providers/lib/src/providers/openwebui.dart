@@ -54,7 +54,7 @@ class _OwuiChatRequest {
   Map<String, dynamic> toJson() => {
     'model': model,
     'stream': true,
-    'messages': messages.map((message) => message.toOwuiJson(
+    'messages': messages.map((message) => message.toOwuiJson( // This isn't very nice.
       message == messages.lastWhere((m) => m.origin == MessageOrigin.user) ? images?.map((image) => image.toJson()).toList() : null)
     ).toList(),
     'files': files?.map((file) => file.toJson()).toList(),
@@ -149,8 +149,8 @@ class _OwuiFileAttachment {
 
 /// A provider for [open-webui](https://openwebui.com/)
 /// Use open-webui as unified chat provider.
-class OpenwebuiProvider extends LlmProvider with ChangeNotifier {
-  /// Creates an [OpenwebuiProvider] instance with an optional chat history.
+class OpenWebUIProvider extends LlmProvider with ChangeNotifier {
+  /// Creates an [OpenWebUIProvider] instance with an optional chat history.
   ///
   /// The [history] parameter is an optional iterable of [ChatMessage] objects
   /// representing the chat history
@@ -170,10 +170,10 @@ class OpenwebuiProvider extends LlmProvider with ChangeNotifier {
   ///   ),
   /// )
   /// ```
-  OpenwebuiProvider({
+  OpenWebUIProvider({
     Iterable<ChatMessage>? history,
     required String model,
-    required String baseUrl,
+    String baseUrl = 'http://localhost:3000/api',
     String? apiKey,
   }): _history = history?.toList() ?? [],
       _model = model,
@@ -206,17 +206,17 @@ class OpenwebuiProvider extends LlmProvider with ChangeNotifier {
     String prompt, {
     Iterable<Attachment> attachments = const [],
   }) async* {
-    final userMessage = ChatMessage(text: prompt, attachments: attachments, origin: MessageOrigin.user);
-    final llmMessage = ChatMessage(text: null, attachments: [], origin: MessageOrigin.llm);
+    final userMessage = ChatMessage.user(prompt, attachments);
+    final llmMessage = ChatMessage.llm();
     _history.addAll([userMessage, llmMessage]);
 
     yield* _generateStream(_history);
-    notifyListeners();
+    // notifyListeners();
   }
 
   Stream<String> _generateStream(List<ChatMessage> messages) async* {
-    _imageAttachments.clear();
-    _fileAttachments.clear();
+    // _fileAttachments.clear(); // Due to how openwebui "builds knowledge" files have to referenced in every user message it seems.
+    _imageAttachments.clear();  // Not entirely sure how this works for images, but attaching the complete image every time seems insane.
     
     final files = messages.lastWhere((m) => m.origin == MessageOrigin.user, orElse: () => _emptyMessage).attachments;
     final llmMessage = messages.last;
@@ -239,28 +239,21 @@ class OpenwebuiProvider extends LlmProvider with ChangeNotifier {
       ).toJsonString();
 
     final httpResponse = await http.Client().send(httpRequest);
-
     if (httpResponse.statusCode == 200) {
-      await for (var text in httpResponse.stream.transform(utf8.decoder)) {
-        final messages = text.split('\n');
-        for (var message in messages) {
-          if (message.startsWith('data: [DONE]')) {
-            return;
-          }
-          if (message.isEmpty) continue;
-          final cleanedMessage = message.replaceFirst('data: ', '').trim();
-          try {
-            final chatResponse = _OwuiChatResponse.fromJsonString(cleanedMessage);
-            for (var choice in chatResponse.choices) {
-              llmMessage.append(choice.message.text ?? '');
-              yield choice.message.text ?? '';
-            }
-          } catch (e) {
-            // just skip?
-          }
+      await for (
+        final message in httpResponse.stream
+          .toStringStream().transform(const LineSplitter())
+      ) {
+        if (message.startsWith('data: [DONE]')) {
+          return;
         }
-        llmMessage.append('');
-        yield '';
+        if (message.isEmpty) continue;
+        final cleanedMessage = message.replaceFirst('data: ', '').trim();
+        final chatResponse = _OwuiChatResponse.fromJsonString(cleanedMessage);
+        for (var choice in chatResponse.choices) {
+          llmMessage.append(choice.message.text ?? '');
+          yield choice.message.text ?? '';
+        }
       }
     } else {
       throw Exception('HTTP request failed. Status: ${httpResponse.statusCode}, Reason: ${httpResponse.reasonPhrase}');
@@ -296,10 +289,10 @@ class OpenwebuiProvider extends LlmProvider with ChangeNotifier {
   }
 
   @override
-  get history => List.from(_history);
+  Iterable<ChatMessage> get history => List.from(_history);
 
   @override
-  set history(history) {
+  set history(Iterable<ChatMessage> history) {
     _history.clear();
     _history.addAll(history);
     notifyListeners();
