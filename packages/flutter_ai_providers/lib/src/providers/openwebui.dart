@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_ai_toolkit/flutter_ai_toolkit.dart';
@@ -7,12 +8,15 @@ import 'package:http/http.dart' as http;
 /// Internal open-webui json encoder / decoder
 extension _OwuiMessage on ChatMessage {
   /// Converts the [ChatMessage] instance to a JSON object.
-  Map<String, dynamic> toOwuiJson() => {
+  Map<String, dynamic> toOwuiJson([List<Map<String, dynamic>>? images]) => {
     'role': origin == MessageOrigin.user ? 'user' : 'assistant',
-    'content': text,
-    'files': [
-      /// ... Figure out how to handle attachments
-    ]
+    'content': images == null ? text : [
+      {
+        'text': text,
+        'type': 'text'
+      },
+      ...images
+    ],
   };
 
   /// Creates an instance of [ChatMessage] from a JSON object.
@@ -30,20 +34,30 @@ extension _OwuiMessage on ChatMessage {
 class _OwuiChatRequest {
   final String model;
   final List<ChatMessage> messages;
-  final List<Map<String, dynamic>>? files;
+  final List<_OwuiFileAttachment>? files;
+  final List<_OwuiImageAttachment>? images;
 
   /// Creates an instance of [_OwuiChatRequest].
   ///
   /// [model] is the model to be used for the chat.
   /// [messages] is the list of messages in the chat history.
-  _OwuiChatRequest({required this.model, required this.messages, this.files});
+  /// [files] files to be attached to the next request.
+  /// [images] images to be attached to the next request.
+  _OwuiChatRequest({
+    required this.model,
+    required this.messages,
+    this.files,
+    this.images
+  });
 
   /// Converts the [_OwuiChatRequest] instance to a JSON object.
   Map<String, dynamic> toJson() => {
     'model': model,
     'stream': true,
-    'messages': messages.map((message) => message.toOwuiJson()).toList(),
-    'files': files,
+    'messages': messages.map((message) => message.toOwuiJson(
+      message == messages.lastWhere((m) => m.origin == MessageOrigin.user) ? images?.map((image) => image.toJson()).toList() : null)
+    ).toList(),
+    'files': files?.map((file) => file.toJson()).toList(),
   };
 
   String toJsonString() => jsonEncode(toJson());
@@ -89,6 +103,49 @@ class _OwuiChatResponseChoice {
   }
 }
 
+/// Internal open-webui json encoder / decoder
+class _OwuiImageAttachment {
+  final String type;
+  final Map<String, String> imageUrl;
+  final String name;
+
+  _OwuiImageAttachment({
+    required this.type,
+    required this.imageUrl,
+    required this.name,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'type': type,
+    'image_url': imageUrl,
+    'name': name,
+  };
+
+  factory _OwuiImageAttachment.fromImageAttachment(ImageFileAttachment attachment) {
+    final base64Image = base64Encode(attachment.bytes);
+    return _OwuiImageAttachment(
+      type: 'image_url',
+      imageUrl: {'url': "data:${attachment.mimeType};base64,$base64Image"},
+      name: attachment.name,
+    );
+  }
+}
+
+/// Internal open-webui json encoder / decoder
+class _OwuiFileAttachment {
+  final String type;
+  final String id;
+
+  _OwuiFileAttachment({
+    required this.type,
+    required this.id,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'type': type,
+    'id': id,
+  };
+}
 
 /// A provider for [open-webui](https://openwebui.com/)
 /// Use open-webui as unified chat provider.
@@ -127,7 +184,8 @@ class OpenwebuiProvider extends LlmProvider with ChangeNotifier {
   final String _model;
   final String _host;
   final String? _apiKey;
-  final List<Map<String, String>> _attachments = [];
+  final List<_OwuiFileAttachment> _fileAttachments = [];
+  final List<_OwuiImageAttachment> _imageAttachments = [];
   final _emptyMessage = ChatMessage(origin: MessageOrigin.llm, text: null, attachments: []);
 
   @override
@@ -157,11 +215,14 @@ class OpenwebuiProvider extends LlmProvider with ChangeNotifier {
   }
 
   Stream<String> _generateStream(List<ChatMessage> messages) async* {
+    _imageAttachments.clear();
+    _fileAttachments.clear();
+    
     final files = messages.lastWhere((m) => m.origin == MessageOrigin.user, orElse: () => _emptyMessage).attachments;
     final llmMessage = messages.last;
     if(files.isNotEmpty) {
       for (var file in files) {
-        _attachments.add(await _uploadAttachment(file));
+        await _handleAttachment(file);
       }
     }
 
@@ -173,7 +234,8 @@ class OpenwebuiProvider extends LlmProvider with ChangeNotifier {
       ..body = _OwuiChatRequest(
         model: _model,
         messages: messages.where((m) => m.text != null).toList(),
-        files: _attachments,
+        files: _fileAttachments,
+        images: _imageAttachments,
       ).toJsonString();
 
     final httpResponse = await http.Client().send(httpRequest);
@@ -205,30 +267,31 @@ class OpenwebuiProvider extends LlmProvider with ChangeNotifier {
     }
   }
 
-  Future<Map<String, String>> _uploadAttachment(Attachment filePath) async {
-    if(filePath is! FileAttachment) {
-      throw Exception('Unsupported attachment type');
-    }
+  Future<void> _handleAttachment(Attachment attachment) async {
+    if(attachment is ImageFileAttachment) {
+      _imageAttachments.add(_OwuiImageAttachment.fromImageAttachment(attachment));
+      log(_imageAttachments.toString());
+    } else if(attachment is FileAttachment) {
+      final uri = Uri.parse('$_host/v1/files/'); // Replace with your OpenWebUI endpoint
+      final request = http.MultipartRequest('POST', uri)
+        ..headers.addAll({
+          if(_apiKey != null) 'Authorization': 'Bearer $_apiKey',
+          'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json',
+        })
+        ..files.add(http.MultipartFile.fromBytes('file', attachment.bytes, filename: attachment.name));
 
-    final uri = Uri.parse('$_host/v1/files/'); // Replace with your OpenWebUI endpoint
-    final request = http.MultipartRequest('POST', uri)
-      ..headers.addAll({
-        if(_apiKey != null) 'Authorization': 'Bearer $_apiKey',
-        'Content-Type': 'multipart/form-data',
-        'Accept': 'application/json',
-      })
-      ..files.add(http.MultipartFile.fromBytes('file', filePath.bytes, filename: filePath.name));
-
-    final response = await request.send();
-    if (response.statusCode == 200) {
-      final responseBody = await response.stream.bytesToString();
-      final jsonResponse = json.decode(responseBody);
-      return {
-        'type': 'file',
-        'id': jsonResponse['id'].toString()
-      }; // Adjust based on the actual response structure
-    } else {
-      throw Exception('Failed to upload file: ${response.reasonPhrase}');
+      final response = await request.send();
+      if (response.statusCode == 200) {
+        final responseBody = await response.stream.bytesToString();
+        final jsonResponse = json.decode(responseBody);
+        _fileAttachments.add(_OwuiFileAttachment(
+          type: 'file',
+          id: jsonResponse['id'].toString(),
+        ));
+      } else {
+        throw Exception('Failed to upload file: ${response.reasonPhrase}');
+      }
     }
   }
 
