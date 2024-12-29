@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_ai_toolkit/flutter_ai_toolkit.dart';
@@ -55,7 +54,7 @@ class _OwuiChatRequest {
     'model': model,
     'stream': true,
     'messages': messages.map((message) => message.toOwuiJson( // This isn't very nice.
-      message == messages.lastWhere((m) => m.origin == MessageOrigin.user) ? images?.map((image) => image.toJson()).toList() : null)
+      message == messages.firstWhere((m) => m.origin == MessageOrigin.user) ? images?.map((image) => image.toJson()).toList() : null)
     ).toList(),
     'files': files?.map((file) => file.toJson()).toList(),
   };
@@ -215,9 +214,6 @@ class OpenWebUIProvider extends LlmProvider with ChangeNotifier {
   }
 
   Stream<String> _generateStream(List<ChatMessage> messages) async* {
-    // _fileAttachments.clear(); // Due to how openwebui "builds knowledge" files have to referenced in every user message it seems.
-    _imageAttachments.clear();  // Not entirely sure how this works for images, but attaching the complete image every time seems insane.
-    
     final files = messages.lastWhere((m) => m.origin == MessageOrigin.user, orElse: () => _emptyMessage).attachments;
     final llmMessage = messages.last;
     if(files.isNotEmpty) {
@@ -262,8 +258,8 @@ class OpenWebUIProvider extends LlmProvider with ChangeNotifier {
 
   Future<void> _handleAttachment(Attachment attachment) async {
     if(attachment is ImageFileAttachment) {
+      _imageAttachments.clear(); // Only one image can be attached at a time? At least with llama3.2-vision + ollama.
       _imageAttachments.add(_OwuiImageAttachment.fromImageAttachment(attachment));
-      log(_imageAttachments.toString());
     } else if(attachment is FileAttachment) {
       final uri = Uri.parse('$_host/v1/files/'); // Replace with your OpenWebUI endpoint
       final request = http.MultipartRequest('POST', uri)
