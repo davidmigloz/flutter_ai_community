@@ -75,7 +75,7 @@ class _OwuiChatResponse {
   /// Creates an instance of [_OwuiChatResponse] from a JSON object.
   factory _OwuiChatResponse.fromJson(Map<String, dynamic> json) {
     return _OwuiChatResponse(
-      choices: (json['choices'] as List).map((choice) => _OwuiChatResponseChoice.fromJson(choice)).toList(),
+      choices: (json['choices'] as List?)?.map((choice) => _OwuiChatResponseChoice.fromJson(choice)).toList() ?? [],
     );
   }
 
@@ -196,8 +196,6 @@ class OpenWebUIProvider extends LlmProvider with ChangeNotifier {
     final llmMessage = ChatMessage(text: "", attachments: [], origin: MessageOrigin.llm);
     
     yield* _generateStream([userMessage, llmMessage]);
-    
-    notifyListeners();
   }
 
   @override
@@ -210,7 +208,6 @@ class OpenWebUIProvider extends LlmProvider with ChangeNotifier {
     _history.addAll([userMessage, llmMessage]);
 
     yield* _generateStream(_history);
-    // notifyListeners();
   }
 
   Stream<String> _generateStream(List<ChatMessage> messages) async* {
