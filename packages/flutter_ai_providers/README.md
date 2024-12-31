@@ -118,7 +118,7 @@ final provider = OllamaProvider(
 ### Openwebui Provider
 
 - [Website](https://openwebui.com/)
-- [Supported models](https://ollama.com/search)
+- [Supported models](https://openwebui.com/models)
 
 ```dart
 final provider = OpenwebuiProvider(
