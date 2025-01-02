@@ -41,6 +41,11 @@ You can find a complete example in the official [Flutter AI Toolkit repository](
 
 The following providers are currently supported:
 
+- [OpenAI Provider](#openai-provider)
+- [Anthropic Provider](#anthropic-provider)
+- [Ollama Provider](#ollama-provider)
+- [Open WebUI Provider](#open-webui-provider)
+
 > **Remember that your API key is a secret!**  
 > Do not share it with others or expose it in any client-side code. Production requests must be routed through your own backend server where your API key can be securely loaded.
 
@@ -115,13 +120,13 @@ final provider = OllamaProvider(
 );
 ```
 
-### Openwebui Provider
+### Open WebUI Provider
 
 - [Website](https://openwebui.com/)
 - [Supported models](https://openwebui.com/models)
 
 ```dart
-final provider = OpenwebuiProvider(
+final provider = OpenWebUIProvider(
   baseUrl: 'http://localhost:3000',
   apiKey: 'your-api-key',
   model: 'llama3.1:latest',
