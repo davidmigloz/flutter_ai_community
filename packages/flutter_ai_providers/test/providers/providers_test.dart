@@ -77,4 +77,14 @@ void main() {
       () => OllamaProvider(model: 'llama3.2-vision'),
     );
   });
+
+  group('OpenwebuiProvider', skip: Platform.environment.containsKey('CI'), () {
+    runProviderTests(
+      () => OpenWebUIProvider(
+          baseUrl: "http://192.168.178.21:3000/api",
+          apiKey:
+              "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjJkYWYyMWUzLWFkZWQtNDc4OS05ZDNiLTQ2NDQzNDk2ODFjMyJ9.SMvMsAioNCMZF8hgCUvZHBGgfwZCLJEqxPwXYIoAO4w",
+          model: 'llama3.2-vision:11b'),
+    );
+  });
 }
