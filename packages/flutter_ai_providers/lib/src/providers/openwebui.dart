@@ -8,15 +8,14 @@ import 'package:http/http.dart' as http;
 extension _OwuiMessage on ChatMessage {
   /// Converts the [ChatMessage] instance to a JSON object.
   Map<String, dynamic> toOwuiJson([List<Map<String, dynamic>>? images]) => {
-    'role': origin == MessageOrigin.user ? 'user' : 'assistant',
-    'content': images == null ? text : [
-      {
-        'text': text,
-        'type': 'text'
-      },
-      ...images
-    ],
-  };
+        'role': origin == MessageOrigin.user ? 'user' : 'assistant',
+        'content': images == null
+            ? text
+            : [
+                {'text': text, 'type': 'text'},
+                ...images
+              ],
+      };
 
   /// Creates an instance of [ChatMessage] from a JSON object.
   static fromOwuiJson(Map<String, dynamic> json) {
@@ -42,22 +41,23 @@ class _OwuiChatRequest {
   /// [messages] is the list of messages in the chat history.
   /// [files] files to be attached to the next request.
   /// [images] images to be attached to the next request.
-  _OwuiChatRequest({
-    required this.model,
-    required this.messages,
-    this.files,
-    this.images
-  });
+  _OwuiChatRequest(
+      {required this.model, required this.messages, this.files, this.images});
 
   /// Converts the [_OwuiChatRequest] instance to a JSON object.
   Map<String, dynamic> toJson() => {
-    'model': model,
-    'stream': true,
-    'messages': messages.map((message) => message.toOwuiJson( // This isn't very nice.
-      message == messages.firstWhere((m) => m.origin == MessageOrigin.user) ? images?.map((image) => image.toJson()).toList() : null)
-    ).toList(),
-    'files': files?.map((file) => file.toJson()).toList(),
-  };
+        'model': model,
+        'stream': true,
+        'messages': messages
+            .map((message) => message.toOwuiJson(// This isn't very nice.
+                message ==
+                        messages
+                            .firstWhere((m) => m.origin == MessageOrigin.user)
+                    ? images?.map((image) => image.toJson()).toList()
+                    : null))
+            .toList(),
+        'files': files?.map((file) => file.toJson()).toList(),
+      };
 
   String toJsonString() => jsonEncode(toJson());
 }
@@ -75,7 +75,10 @@ class _OwuiChatResponse {
   /// Creates an instance of [_OwuiChatResponse] from a JSON object.
   factory _OwuiChatResponse.fromJson(Map<String, dynamic> json) {
     return _OwuiChatResponse(
-      choices: (json['choices'] as List?)?.map((choice) => _OwuiChatResponseChoice.fromJson(choice)).toList() ?? [],
+      choices: (json['choices'] as List?)
+              ?.map((choice) => _OwuiChatResponseChoice.fromJson(choice))
+              .toList() ??
+          [],
     );
   }
 
@@ -115,12 +118,13 @@ class _OwuiImageAttachment {
   });
 
   Map<String, dynamic> toJson() => {
-    'type': type,
-    'image_url': imageUrl,
-    'name': name,
-  };
+        'type': type,
+        'image_url': imageUrl,
+        'name': name,
+      };
 
-  factory _OwuiImageAttachment.fromImageAttachment(ImageFileAttachment attachment) {
+  factory _OwuiImageAttachment.fromImageAttachment(
+      ImageFileAttachment attachment) {
     final base64Image = base64Encode(attachment.bytes);
     return _OwuiImageAttachment(
       type: 'image_url',
@@ -141,9 +145,9 @@ class _OwuiFileAttachment {
   });
 
   Map<String, dynamic> toJson() => {
-    'type': type,
-    'id': id,
-  };
+        'type': type,
+        'id': id,
+      };
 }
 
 /// A provider for [open-webui](https://openwebui.com/)
@@ -174,10 +178,10 @@ class OpenWebUIProvider extends LlmProvider with ChangeNotifier {
     required String model,
     String baseUrl = 'http://localhost:3000/api',
     String? apiKey,
-  }): _history = history?.toList() ?? [],
-      _model = model,
-      _host = baseUrl,
-      _apiKey = apiKey;
+  })  : _history = history?.toList() ?? [],
+        _model = model,
+        _host = baseUrl,
+        _apiKey = apiKey;
 
   final List<ChatMessage> _history;
   final String _model;
@@ -185,16 +189,19 @@ class OpenWebUIProvider extends LlmProvider with ChangeNotifier {
   final String? _apiKey;
   final List<_OwuiFileAttachment> _fileAttachments = [];
   final List<_OwuiImageAttachment> _imageAttachments = [];
-  final _emptyMessage = ChatMessage(origin: MessageOrigin.llm, text: null, attachments: []);
+  final _emptyMessage =
+      ChatMessage(origin: MessageOrigin.llm, text: null, attachments: []);
 
   @override
   Stream<String> generateStream(
     String prompt, {
     Iterable<Attachment> attachments = const [],
   }) async* {
-    final userMessage = ChatMessage(text: prompt, attachments: attachments, origin: MessageOrigin.user);
-    final llmMessage = ChatMessage(text: "", attachments: [], origin: MessageOrigin.llm);
-    
+    final userMessage = ChatMessage(
+        text: prompt, attachments: attachments, origin: MessageOrigin.user);
+    final llmMessage =
+        ChatMessage(text: "", attachments: [], origin: MessageOrigin.llm);
+
     yield* _generateStream([userMessage, llmMessage]);
   }
 
@@ -211,32 +218,35 @@ class OpenWebUIProvider extends LlmProvider with ChangeNotifier {
   }
 
   Stream<String> _generateStream(List<ChatMessage> messages) async* {
-    final files = messages.lastWhere((m) => m.origin == MessageOrigin.user, orElse: () => _emptyMessage).attachments;
+    final files = messages
+        .lastWhere((m) => m.origin == MessageOrigin.user,
+            orElse: () => _emptyMessage)
+        .attachments;
     final llmMessage = messages.last;
-    if(files.isNotEmpty) {
+    if (files.isNotEmpty) {
       for (var file in files) {
         await _handleAttachment(file);
       }
     }
 
-    final httpRequest = http.Request('POST', Uri.parse("$_host/chat/completions"))
-      ..headers.addAll({
-        if(_apiKey != null) 'Authorization': 'Bearer $_apiKey',
-        'Content-Type': 'application/json',
-      })
-      ..body = _OwuiChatRequest(
-        model: _model,
-        messages: messages.where((m) => m.text != null).toList(),
-        files: _fileAttachments,
-        images: _imageAttachments,
-      ).toJsonString();
+    final httpRequest =
+        http.Request('POST', Uri.parse("$_host/chat/completions"))
+          ..headers.addAll({
+            if (_apiKey != null) 'Authorization': 'Bearer $_apiKey',
+            'Content-Type': 'application/json',
+          })
+          ..body = _OwuiChatRequest(
+            model: _model,
+            messages: messages.where((m) => m.text != null).toList(),
+            files: _fileAttachments,
+            images: _imageAttachments,
+          ).toJsonString();
 
     final httpResponse = await http.Client().send(httpRequest);
     if (httpResponse.statusCode == 200) {
-      await for (
-        final message in httpResponse.stream
-          .toStringStream().transform(const LineSplitter())
-      ) {
+      await for (final message in httpResponse.stream
+          .toStringStream()
+          .transform(const LineSplitter())) {
         if (message.startsWith('data: [DONE]')) {
           return;
         }
@@ -249,23 +259,28 @@ class OpenWebUIProvider extends LlmProvider with ChangeNotifier {
         }
       }
     } else {
-      throw Exception('HTTP request failed. Status: ${httpResponse.statusCode}, Reason: ${httpResponse.reasonPhrase}');
+      throw Exception(
+          'HTTP request failed. Status: ${httpResponse.statusCode}, Reason: ${httpResponse.reasonPhrase}');
     }
   }
 
   Future<void> _handleAttachment(Attachment attachment) async {
-    if(attachment is ImageFileAttachment) {
-      _imageAttachments.clear(); // Only one image can be attached at a time? At least with llama3.2-vision + ollama.
-      _imageAttachments.add(_OwuiImageAttachment.fromImageAttachment(attachment));
-    } else if(attachment is FileAttachment) {
-      final uri = Uri.parse('$_host/v1/files/'); // Replace with your OpenWebUI endpoint
+    if (attachment is ImageFileAttachment) {
+      _imageAttachments
+          .clear(); // Only one image can be attached at a time? At least with llama3.2-vision + ollama.
+      _imageAttachments
+          .add(_OwuiImageAttachment.fromImageAttachment(attachment));
+    } else if (attachment is FileAttachment) {
+      final uri =
+          Uri.parse('$_host/v1/files/'); // Replace with your OpenWebUI endpoint
       final request = http.MultipartRequest('POST', uri)
         ..headers.addAll({
-          if(_apiKey != null) 'Authorization': 'Bearer $_apiKey',
+          if (_apiKey != null) 'Authorization': 'Bearer $_apiKey',
           'Content-Type': 'multipart/form-data',
           'Accept': 'application/json',
         })
-        ..files.add(http.MultipartFile.fromBytes('file', attachment.bytes, filename: attachment.name));
+        ..files.add(http.MultipartFile.fromBytes('file', attachment.bytes,
+            filename: attachment.name));
 
       final response = await request.send();
       if (response.statusCode == 200) {
