@@ -12,7 +12,7 @@ This repo is dedicated to community-driven contributions for extending the funct
 A collection of community-contributed providers for the Flutter AI Toolkit. The package includes support for:
 
 - 🤖 Multiple LLM providers:
-  - OpenAI (GPT-4, etc.)
+  - OpenAI (GPT-4, o1, etc.)
   - Anthropic (Claude)
   - Ollama (Local Models)
   - OpenAI-compatible APIs (OpenRouter, xAI, Groq, etc.)

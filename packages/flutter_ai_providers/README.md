@@ -46,6 +46,8 @@ The following providers are currently supported:
 - [Ollama Provider](#ollama-provider)
 - [Open WebUI Provider](#open-webui-provider)
 
+_For [Google Gemini AI](https://ai.google.dev/gemini-api/docs) and [Firebase Vertex AI](https://firebase.google.com/docs/vertex-ai) providers, please refer to the official [Flutter AI Toolkit](https://pub.dev/packages/flutter_ai_toolkit) package._
+
 > **Remember that your API key is a secret!**  
 > Do not share it with others or expose it in any client-side code. Production requests must be routed through your own backend server where your API key can be securely loaded.
 

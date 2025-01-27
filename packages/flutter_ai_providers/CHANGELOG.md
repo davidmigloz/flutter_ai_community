@@ -1,3 +1,7 @@
-## 0.0.1-dev.1
+## 0.1.0
 
-- Bootstrap package.
+- Initial release with support for:
+  * OpenAI (GPT-4, o1, etc.)
+  * Anthropic (Claude)
+  * Ollama (Local Models)
+  * OpenAI-compatible APIs (OpenRouter, xAI, Groq, etc.)
