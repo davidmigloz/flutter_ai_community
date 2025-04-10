@@ -19,6 +19,7 @@ class LlamaProvider extends LlmProvider with ChangeNotifier {
     Map<String, dynamic> modelOptions = const {},
   }) : _client = Llama(LlamaController.fromMap({
           'model_path': modelPath,
+          'greedy': true,
           ...modelOptions,
         })),
        _history = [];
