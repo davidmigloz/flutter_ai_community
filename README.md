@@ -15,6 +15,7 @@ A collection of community-contributed providers for the Flutter AI Toolkit. The 
   - OpenAI (GPT-4, o1, etc.)
   - Anthropic (Claude)
   - Ollama (Local Models)
+  - Llama.cpp (Local Models)
   - OpenAI-compatible APIs (OpenRouter, xAI, Groq, etc.)
 - 💬 Streaming responses
 - 🖼️ Image understanding capabilities

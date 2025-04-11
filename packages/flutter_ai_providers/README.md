@@ -122,6 +122,15 @@ final provider = OllamaProvider(
 );
 ```
 
+### Llama.cpp Provider
+- [Repository](https://github.com/ggml-org/llama.cpp)
+
+```dart
+final provider = LlamaProvider(
+  modelPath: '/path/to/your/model/file.gguf',
+);
+```
+
 ### Open WebUI Provider
 
 - [Website](https://openwebui.com/)
