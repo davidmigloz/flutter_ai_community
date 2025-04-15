@@ -19,7 +19,7 @@ class ChatPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text(App.title)),
-    body: LlmChatView(provider: OllamaProvider(model: 'gemma2')),
-  );
+        appBar: AppBar(title: const Text(App.title)),
+        body: LlmChatView(provider: OllamaProvider(model: 'gemma2')),
+      );
 }

@@ -1,6 +1,7 @@
 ## 0.2.0
 
 - Added support for access to local models via llama.cpp
+- Added an example
 
 ## 0.1.0
 
