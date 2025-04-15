@@ -14,7 +14,7 @@ environment:
   flutter: '>=3.27.0'
 
 dependencies:
-  llama_sdk: ^0.0.2
+  llama_sdk: ^0.0.4
   anthropic_sdk_dart: ^0.2.0+1
   flutter:
     sdk: flutter
