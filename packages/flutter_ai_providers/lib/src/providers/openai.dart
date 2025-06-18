@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:openai_dart/openai_dart.dart';
 import 'package:flutter_ai_toolkit/flutter_ai_toolkit.dart';
+import 'package:openai_dart/openai_dart.dart';
 
 /// A provider for OpenAI's language models.
 ///
@@ -126,9 +126,8 @@ class OpenAIProvider extends LlmProvider with ChangeNotifier {
                   ),
                 )
               else
-                // TODO Fix when LlmFailureException exported from flutter_ai_toolkit
-                // throw LlmFailureException('Unsupported attachment type: $attachment'),
-                throw Exception('Unsupported attachment type: $attachment'),
+                throw LlmFailureException(
+                    'Unsupported attachment type: $attachment'),
           ];
           return ChatCompletionMessage.user(
             content: ChatCompletionUserMessageContent.parts(parts),

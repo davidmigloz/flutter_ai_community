@@ -100,9 +100,7 @@ class AnthropicProvider extends LlmProvider with ChangeNotifier {
     yield* stream.map((event) {
       return event.mapOrNull(
             contentBlockDelta: (e) => e.delta.text,
-            // TODO Fix when LlmFailureException exported from flutter_ai_toolkit
-            // error: (e) => throw LlmFailureException(e.error.message),
-            error: (e) => throw Exception(e.error.message),
+            error: (e) => throw LlmFailureException(e.error.message),
           ) ??
           '';
     });
@@ -131,9 +129,7 @@ class AnthropicProvider extends LlmProvider with ChangeNotifier {
                       'image/png' => ImageBlockSourceMediaType.imagePng,
                       'image/gif' => ImageBlockSourceMediaType.imageGif,
                       'image/webp' => ImageBlockSourceMediaType.imageWebp,
-                      // TODO Fix when LlmFailureException exported from flutter_ai_toolkit
-                      // _ => throw LlmFailureException(
-                      _ => throw Exception(
+                      _ => throw LlmFailureException(
                           'Unsupported image MIME type: ${attachment.mimeType}',
                         ),
                     },
@@ -141,9 +137,7 @@ class AnthropicProvider extends LlmProvider with ChangeNotifier {
                   ),
                 )
               else
-                // TODO Fix when LlmFailureException exported from flutter_ai_toolkit
-                // throw LlmFailureException(
-                throw Exception(
+                throw LlmFailureException(
                   'Unsupported attachment type: $attachment',
                 ),
           ];

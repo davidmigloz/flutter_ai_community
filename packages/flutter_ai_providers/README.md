@@ -12,6 +12,7 @@ Community-contributed providers for the [Flutter AI Toolkit](https://github.com/
     - OpenAI (GPT-4o, o1, etc.)
     - Anthropic (Claude)
     - Ollama (Local Models)
+    - Dartantic AI (Google Gemini, OpenAI, and more)
 - 💬 Streaming Responses: Real-time message streaming for a smooth chat experience
 - 🖼️ Image Understanding: Support for image attachments in conversations
 
@@ -41,10 +42,20 @@ You can find a complete example in the official [Flutter AI Toolkit repository](
 
 The following providers are currently supported:
 
-- [OpenAI Provider](#openai-provider)
-- [Anthropic Provider](#anthropic-provider)
-- [Ollama Provider](#ollama-provider)
-- [Open WebUI Provider](#open-webui-provider)
+- [Flutter AI Toolkit Community Providers](#flutter-ai-toolkit-community-providers)
+  - [Features](#features)
+  - [Getting Started](#getting-started)
+    - [Installation](#installation)
+    - [Usage](#usage)
+  - [Providers](#providers)
+    - [OpenAI Provider](#openai-provider)
+    - [Anthropic Provider](#anthropic-provider)
+    - [Ollama Provider](#ollama-provider)
+    - [Llama.cpp Provider](#llamacpp-provider)
+    - [Open WebUI Provider](#open-webui-provider)
+    - [Dartantic Provider](#dartantic-provider)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 _For [Google Gemini AI](https://ai.google.dev/gemini-api/docs) and [Firebase Vertex AI](https://firebase.google.com/docs/vertex-ai) providers, please refer to the official [Flutter AI Toolkit](https://pub.dev/packages/flutter_ai_toolkit) package._
 
@@ -141,6 +152,25 @@ final provider = OpenWebUIProvider(
   baseUrl: 'http://localhost:3000',
   apiKey: 'your-api-key',
   model: 'llama3.1:latest',
+);
+```
+
+### Dartantic Provider
+
+- [Website](https://pub.dev/packages/dartantic_ai)
+- [Documentation](https://pub.dev/documentation/dartantic_ai/latest/)
+
+The Dartantic provider offers a unified interface for multiple AI models through
+the dartantic_ai package, supporting Google Gemini, OpenAI, and other providers.
+
+```dart
+import 'package:dartantic_ai/dartantic_ai.dart';
+
+final provider = DartanticProvider(
+  Agent(
+    'google:gemini-2.0-flash', // or 'openai:gpt-4o', etc.
+    apiKey: 'YOUR-API-KEY', // or pulled from your environment automatically
+  ),
 );
 ```
 

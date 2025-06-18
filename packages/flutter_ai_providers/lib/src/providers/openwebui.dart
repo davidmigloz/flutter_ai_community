@@ -180,7 +180,7 @@ extension _OwuiMessage on ChatMessage {
       };
 
   /// Creates an instance of [ChatMessage] from a JSON object.
-  static fromOwuiJson(Map<String, dynamic> json) {
+  static ChatMessage fromOwuiJson(Map<String, dynamic> json) {
     return ChatMessage(
       origin: json['role'] == 'user' ? MessageOrigin.user : MessageOrigin.llm,
       text: json['delta']?['content'],

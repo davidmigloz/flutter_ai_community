@@ -1,3 +1,9 @@
+## 0.3.0
+
+- support for dartantic_ai
+- make use of `LlmFailureException`
+- added example projects for the other providers
+
 ## 0.2.0
 
 - Added support for access to local models via llama.cpp

@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:ollama_dart/ollama_dart.dart';
 import 'package:flutter_ai_toolkit/flutter_ai_toolkit.dart';
+import 'package:ollama_dart/ollama_dart.dart';
 
 /// A provider for Ollama's language models.
 ///
@@ -111,9 +111,7 @@ class OllamaProvider extends LlmProvider with ChangeNotifier {
                 if (attachment is ImageFileAttachment)
                   base64Encode(attachment.bytes)
                 else
-                  // TODO Fix when LlmFailureException exported from flutter_ai_toolkit
-                  // throw LlmFailureException(
-                  throw Exception(
+                  throw LlmFailureException(
                     'Unsupported attachment type: $attachment',
                   ),
             ],
