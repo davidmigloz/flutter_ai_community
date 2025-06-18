@@ -99,7 +99,7 @@ class OpenAIProvider extends LlmProvider with ChangeNotifier {
     );
 
     yield* stream
-        .map((res) => res.choices.firstOrNull?.delta.content)
+        .map((res) => res.choices.firstOrNull?.delta?.content)
         .where((content) => content != null)
         .cast<String>();
   }

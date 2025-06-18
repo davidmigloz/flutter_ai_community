@@ -3,6 +3,7 @@
 - support for dartantic_ai
 - make use of `LlmFailureException`
 - added example projects for the other providers
+- update OpenAIProvider for latest openai_dart
 
 ## 0.2.0
 

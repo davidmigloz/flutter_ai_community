@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:dartantic_ai/dartantic_ai.dart' as dartantic;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_ai_toolkit/flutter_ai_toolkit.dart';
@@ -53,16 +51,13 @@ class DartanticProvider extends LlmProvider with ChangeNotifier {
   Stream<String> _generateStream({
     required String prompt,
     required Iterable<Attachment> attachments,
-  }) async* {
-    final dartanticMessages = _dartanticMessagesFrom(_history).toList();
-    assert(dartanticMessages.length == _history.length,
-        'Dartantic message count (${dartanticMessages.length}) must match chat message count (${_history.length})');
-
-    yield* _agent
-        .runStream(prompt, messages: dartanticMessages)
-        .map((response) => response.output)
-        .where((t) => t.isNotEmpty);
-  }
+  }) =>
+      _agent
+          .runStream(prompt,
+              messages: _dartanticMessagesFrom(_history),
+              attachments: _dartanticPartsFrom(attachments))
+          .map((response) => response.output)
+          .where((t) => t.isNotEmpty);
 
   @override
   Iterable<ChatMessage> get history => _history;
@@ -75,34 +70,39 @@ class DartanticProvider extends LlmProvider with ChangeNotifier {
   }
 
   Iterable<dartantic.Message> _dartanticMessagesFrom(
-      List<ChatMessage> history) sync* {
-    for (final message in history) {
-      final content = <dartantic.Part>[
-        // Always include text part, even if empty, to ensure content is never
-        // empty, e.g. when we create an empty ChatMessage.llm() above.
-        dartantic.TextPart(message.text ?? ''),
-        for (final attachment in message.attachments)
+          List<ChatMessage> history) =>
+      [
+        for (final message in history)
+          dartantic.Message(
+            role: _dartanticRoleFrom(message.origin),
+            parts: [
+              // Always include text part to ensure content is never empty
+              dartantic.TextPart(message.text ?? ''),
+              ..._dartanticPartsFrom(message.attachments)
+            ],
+          ),
+      ];
+
+  Iterable<dartantic.Part> _dartanticPartsFrom(
+          Iterable<Attachment> attachments) =>
+      [
+        for (final attachment in attachments)
           switch (attachment) {
-            ImageFileAttachment() => dartantic.MediaPart(
-                contentType: attachment.mimeType,
-                url: 'data:${attachment.mimeType};'
-                    'base64,${base64Encode(attachment.bytes)}',
+            ImageFileAttachment() => dartantic.DataPart(
+                attachment.bytes,
+                mimeType: attachment.mimeType,
               ),
-            FileAttachment() => dartantic.MediaPart(
-                contentType: attachment.mimeType,
-                url: 'data:${attachment.mimeType};'
-                    'base64,${base64Encode(attachment.bytes)}',
+            FileAttachment() => dartantic.DataPart(
+                attachment.bytes,
+                mimeType: attachment.mimeType,
               ),
-            LinkAttachment() => dartantic.TextPart(
-                'Link: ${attachment.url}',
-              ),
+            LinkAttachment() => dartantic.LinkPart(attachment.url),
           },
       ];
 
-      yield switch (message.origin) {
-        MessageOrigin.user => dartantic.Message.user(content),
-        MessageOrigin.llm => dartantic.Message.model(content),
+  dartantic.MessageRole _dartanticRoleFrom(MessageOrigin origin) =>
+      switch (origin) {
+        MessageOrigin.user => dartantic.MessageRole.user,
+        MessageOrigin.llm => dartantic.MessageRole.model,
       };
-    }
-  }
 }
