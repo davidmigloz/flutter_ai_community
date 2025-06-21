@@ -31,3 +31,4 @@ build/
 .flutter-plugins-dependencies
 .vscode/settings.json
 .vscode/launch.json
+packages/flutter_ai_providers/.vscode/settings.json

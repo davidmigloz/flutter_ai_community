@@ -1,3 +1,7 @@
+## 0.3.1
+
+- support for dartantic_ai v0.9.0
+
 ## 0.3.0
 
 - support for dartantic_ai
