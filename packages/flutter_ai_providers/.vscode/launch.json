@@ -1,0 +1,54 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "main",
+      "cwd": "example",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart"
+    },
+    {
+      "name": "anthropic",
+      "cwd": "example",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/anthropic.dart"
+    },
+    {
+      "name": "dartantic",
+      "cwd": "example",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/dartantic.dart"
+    },
+    {
+      "name": "llama",
+      "cwd": "example",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/llama.dart"
+    },
+    {
+      "name": "ollama",
+      "cwd": "example",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/ollama.dart"
+    },
+    {
+      "name": "openai",
+      "cwd": "example",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/openai.dart"
+    },
+    {
+      "name": "openwebui",
+      "cwd": "example",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/openwebui.dart"
+    }
+  ]
+}

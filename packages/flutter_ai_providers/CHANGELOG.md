@@ -1,3 +1,7 @@
+## 0.3.2
+
+- updated DartanticProvider that properly handles tool calls
+
 ## 0.3.1
 
 - support for dartantic_ai v0.9.0
