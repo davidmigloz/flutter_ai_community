@@ -1,4 +1,5 @@
 import 'package:dartantic_ai/dartantic_ai.dart';
+import 'package:dartantic_interface/dartantic_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ai_providers/flutter_ai_providers.dart';
 import 'package:flutter_ai_toolkit/flutter_ai_toolkit.dart';

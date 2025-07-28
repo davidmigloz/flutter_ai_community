@@ -1,6 +1,6 @@
 name: flutter_ai_providers
 description: Community-contributed providers for the Flutter AI Toolkit.
-version: 0.3.2
+version: 0.3.3
 repository: https://github.com/davidmigloz/flutter_ai_community/tree/main/packages/flutter_ai_providers
 issue_tracker: https://github.com/davidmigloz/flutter_ai_community/issues
 
@@ -22,7 +22,8 @@ dependencies:
   ollama_dart: ^0.2.2+1
   openai_dart: ^0.5.1
   http: ^1.3.0
-  dartantic_ai: ^0.9.0
+  dartantic_ai: ^1.0.1
+  dartantic_interface: ^1.0.1
 
 dev_dependencies:
   flutter_lints: ^6.0.0

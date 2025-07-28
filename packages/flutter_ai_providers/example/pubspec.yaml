@@ -13,7 +13,8 @@ dependencies:
   # flutter_ai_providers: ^0.1.0
   flutter_ai_providers:
     path: ..
-  dartantic_ai: ^0.9.0
+  dartantic_ai: ^1.0.1
+  dartantic_interface: ^1.0.1
 
 dev_dependencies:
   flutter_lints: ^5.0.0
