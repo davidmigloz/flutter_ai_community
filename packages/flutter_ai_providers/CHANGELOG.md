@@ -1,6 +1,7 @@
 # 0.3.4
 
 - Upgrade OpenAIProvider to openai_dart v0.5.4 (#15)
+- Update OpenAIProvider default model to gpt-5 (#16)
 
 ## 0.3.3
 
@@ -29,7 +30,7 @@
 ## 0.1.0
 
 - Initial release with support for:
-  * OpenAI (GPT-4, o1, etc.)
+  * OpenAI (GPT-5, o3, etc.)
   * Anthropic (Claude)
   * Ollama (Local Models)
   * OpenAI-compatible APIs (OpenRouter, xAI, Groq, etc.)

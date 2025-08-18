@@ -58,7 +58,7 @@ void main() {
     runProviderTests(
       () => OpenAIProvider(
         apiKey: Platform.environment['OPENAI_API_KEY']!,
-        model: 'gpt-4o-mini',
+        model: 'gpt-5-mini',
       ),
     );
   });
