@@ -20,7 +20,7 @@ dependencies:
     sdk: flutter
   flutter_ai_toolkit: ^0.9.1
   ollama_dart: ^0.2.2+1
-  openai_dart: ^0.5.1
+  openai_dart: ^0.5.4
   http: ^1.3.0
   dartantic_ai: ^1.0.1
   dartantic_interface: ^1.0.1
