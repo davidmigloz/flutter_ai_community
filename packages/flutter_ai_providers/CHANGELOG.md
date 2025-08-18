@@ -1,6 +1,10 @@
+# 0.3.4
+
+- Upgrade OpenAIProvider to openai_dart v0.5.4 (#15)
+
 ## 0.3.3
 
-  - Updated for dartantic_ai 1.0.1
+- Updated for dartantic_ai 1.0.1
 
 ## 0.3.2
 
