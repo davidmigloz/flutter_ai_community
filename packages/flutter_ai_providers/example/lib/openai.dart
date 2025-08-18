@@ -23,7 +23,7 @@ class ChatPage extends StatelessWidget {
         body: LlmChatView(
           provider: OpenAIProvider(
             apiKey: 'your-api-key',
-            model: 'gpt-4o',
+            model: 'gpt-5',
           ),
         ),
       );

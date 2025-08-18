@@ -9,7 +9,7 @@ Community-contributed providers for the [Flutter AI Toolkit](https://github.com/
 ## Features
 
 - 🤖 Multiple LLM Providers Support:
-    - OpenAI (GPT-4o, o1, etc.)
+    - OpenAI (GPT-5, o3, etc.)
     - Anthropic (Claude)
     - Ollama (Local Models)
     - Dartantic AI (Google Gemini, OpenAI, and more)
@@ -71,7 +71,7 @@ _For [Google Gemini AI](https://ai.google.dev/gemini-api/docs) and [Firebase Ver
 ```dart
 final provider = OpenAIProvider(
   apiKey: 'your-api-key',
-  model: 'gpt-4o',
+  model: 'gpt-5',
 );
 ```
 
@@ -168,7 +168,7 @@ import 'package:dartantic_ai/dartantic_ai.dart';
 
 final provider = DartanticProvider(
   Agent(
-    'google:gemini-2.0-flash', // or 'openai:gpt-4o', etc.
+    'google:gemini-2.0-flash', // or 'openai:gpt-5', etc.
     apiKey: 'YOUR-API-KEY', // or pulled from your environment automatically
   ),
 );

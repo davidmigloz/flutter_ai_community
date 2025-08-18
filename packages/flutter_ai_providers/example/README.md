@@ -9,7 +9,7 @@ This directory contains example implementations showing how to use various AI pr
 The `openai.dart` file demonstrates how to integrate the OpenAI provider:
 
 - **File**: `lib/openai.dart`
-- **Provider**: OpenAIProvider with GPT-4o
+- **Provider**: OpenAIProvider with GPT-5
 - **Features**: Basic chat interface with streaming responses and image support
 
 To run this example:

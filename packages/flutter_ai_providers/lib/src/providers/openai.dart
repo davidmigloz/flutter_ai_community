@@ -26,7 +26,7 @@ class OpenAIProvider extends LlmProvider with ChangeNotifier {
     String? baseUrl,
     Map<String, String>? headers,
     Map<String, String>? queryParams,
-    String model = 'gpt-4o',
+    String model = 'gpt-5',
   })  : _client = OpenAIClient(
           apiKey: apiKey,
           organization: organization,
