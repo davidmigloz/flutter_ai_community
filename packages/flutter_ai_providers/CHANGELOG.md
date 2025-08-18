@@ -1,4 +1,8 @@
-# 0.3.4
+## 0.3.4+1
+
+- Fix changelog
+
+## 0.3.4
 
 - Upgrade OpenAIProvider to openai_dart v0.5.4 (#15)
 - Update OpenAIProvider default model to gpt-5 (#16)

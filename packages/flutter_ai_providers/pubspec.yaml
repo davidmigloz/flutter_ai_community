@@ -1,6 +1,6 @@
 name: flutter_ai_providers
 description: Community-contributed providers for the Flutter AI Toolkit.
-version: 0.3.4
+version: 0.3.4+1
 repository: https://github.com/davidmigloz/flutter_ai_community/tree/main/packages/flutter_ai_providers
 issue_tracker: https://github.com/davidmigloz/flutter_ai_community/issues
 
