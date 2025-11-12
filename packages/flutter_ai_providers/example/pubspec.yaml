@@ -9,7 +9,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter:
     sdk: flutter
-  flutter_ai_toolkit: ^0.9.1
+  flutter_ai_toolkit: ^0.10.0
   # flutter_ai_providers: ^0.1.0
   flutter_ai_providers:
     path: ..
