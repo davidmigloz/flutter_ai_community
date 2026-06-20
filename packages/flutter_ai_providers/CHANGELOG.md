@@ -1,3 +1,7 @@
+## 0.3.5
+
+- Add support for flutter_ai_toolkit v0.10.0
+
 ## 0.3.4+1
 
 - Fix changelog
